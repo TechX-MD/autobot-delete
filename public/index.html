@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoBot Pro Dashboard</title>
+<style>
+body{margin:0;padding:20px;background:#030d08;color:#eafff0;font-family:sans-serif}
+.box{background:#092116;border:1px solid #39ff8860;border-radius:12px;padding:16px;margin-bottom:15px;max-width:500px;margin:auto}
+h2{color:#39ff88;margin-top:0}
+input,select,button{width:100%;padding:12px;border-radius:6px;border:1px solid #39ff8860;background:#05140d;color:white;margin:8px 0;box-sizing:border-box}
+button{background:#39ff88;color:#020a06;font-weight:bold;border:none}
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>⚡ AutoBot Pro Control</h2>
+  <label>Channel / Group (@username or ID):</label>
+  <input id="target" placeholder="@my_channel">
+  <label>Delete Timer:</label>
+  <select id="timer">
+    <option value="30s">30 Seconds</option>
+    <option value="5m">5 Minutes</option>
+    <option value="1h">1 Hour</option>
+    <option value="24h">24 Hours</option>
+    <option value="off">Turn OFF</option>
+  </select>
+  <button onclick="save()">SAVE SETTINGS</button>
+  <p id="msg"></p>
+  <hr style="border-color:#39ff8830">
+  <h3>Active Settings:</h3>
+  <div id="list">Loading...</div>
+</div>
+<script>
+async function load(){
+  const r = await fetch('/api/settings');
+  const d = await r.json();
+  const l = document.getElementById('list');
+  l.innerHTML = Object.keys(d.settings).length ? '' : 'Hapana matimer akatarwa.';
+  for(let [k,v] of Object.entries(d.settings)){
+    l.innerHTML += `<div><b>${k}</b>: inodzima mushure me ${v}s</div>`;
+  }
+}
+async function save(){
+  const target = document.getElementById('target').value.trim();
+  const timer = document.getElementById('timer').value;
+  const m = document.getElementById('msg');
+  if(!target) return alert('Pinda zita re channel/group!');
+  m.innerText = 'Saving...';
+  const r = await fetch('/api/settings', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({target, timer})
+  });
+  const d = await r.json();
+  m.innerText = d.message || d.error;
+  load();
+}
+load();
+</script>
+</body>
+</html>
